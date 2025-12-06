@@ -5,6 +5,16 @@
 
 constexpr double MIN_FRAME_DURATION = 1.0 / 75.0;
 
+GLFWcursor *cursor, *cursorPressed;
+
+void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+    switch (button) {
+        case GLFW_MOUSE_BUTTON_LEFT: 
+            glfwSetCursor(window, action == GLFW_PRESS ? cursorPressed : cursor);
+            break;
+    }
+}
+
 int main()
 {
     glfwInit();
@@ -12,10 +22,10 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    auto* monitor = glfwGetPrimaryMonitor();
-    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+    auto *monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode *mode = glfwGetVideoMode(monitor);
 
-    GLFWwindow* window = glfwCreateWindow(
+    GLFWwindow *window = glfwCreateWindow(
         mode->width,
         mode->height,
         "Cinema",
@@ -24,6 +34,11 @@ int main()
     );
     if (window == NULL) return endProgram("Prozor nije uspeo da se kreira.");
     glfwMakeContextCurrent(window);
+
+    cursor = loadImageToCursor("res/cursor.png");
+    cursorPressed = loadImageToCursor("res/cursorpress.png");
+    glfwSetCursor(window, cursor);
+    glfwSetMouseButtonCallback(window, mouseButtonCallback);
 
     if (glewInit() != GLEW_OK) return endProgram("GLEW nije uspeo da se inicijalizuje.");
 
