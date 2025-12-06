@@ -3,11 +3,8 @@
 
 #include "Util.h"
 
-// Main fajl funkcija sa osnovnim komponentama OpenGL programa
+constexpr double MIN_FRAME_DURATION = 1.0 / 75.0;
 
-// Projekat je dozvoljeno pisati počevši od ovog kostura
-// Toplo se preporučuje razdvajanje koda po fajlovima (i eventualno potfolderima) !!!
-// Srećan rad!
 int main()
 {
     glfwInit();
@@ -15,7 +12,16 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(800, 800, "Kostur", NULL, NULL);
+    auto* monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+    GLFWwindow* window = glfwCreateWindow(
+        mode->width,
+        mode->height,
+        "Cinema",
+        monitor,
+        NULL
+    );
     if (window == NULL) return endProgram("Prozor nije uspeo da se kreira.");
     glfwMakeContextCurrent(window);
 
@@ -28,10 +34,18 @@ int main()
 
     while (!glfwWindowShouldClose(window))
     {
+        const double initFrameTime = glfwGetTime();
+
+        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+            glfwSetWindowShouldClose(window, true);
+        }
+
         glClear(GL_COLOR_BUFFER_BIT);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        while (glfwGetTime() - initFrameTime < MIN_FRAME_DURATION) {}
     }
 
     glfwDestroyWindow(window);
