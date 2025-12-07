@@ -134,8 +134,11 @@
     <None Include="packages.config" />
     <None Include="res\rect.frag" />
     <None Include="res\rect.vert" />
+    <None Include="res\text.frag" />
+    <None Include="res\text.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\stb_easy_font.h" />
     <ClInclude Include="src\stb_image.h" />
     <ClInclude Include="src\Util.h" />
   </ItemGroup>

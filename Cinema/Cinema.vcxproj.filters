@@ -22,12 +22,21 @@
     <None Include="res\rect.vert">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="res\text.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\text.vert">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\stb_image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\stb_easy_font.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

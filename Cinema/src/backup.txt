@@ -1,0 +1,63 @@
+struct Person {
+    float x, y;
+    Seat* targetSeat;
+    bool seated;
+    float speed = 0.01f;
+};
+
+std::vector<Person> people;
+std::mt19937 rng(std::random_device{}());
+
+
+void startProjection() {
+    int reservations = 0, purchases = 0;
+    for (int r = 0; r < ROWS; r++)
+        for (int c = 0; c < COLS; c++)
+            if (seats[r][c].state == Seat::RESERVED) reservations++;
+            else if (seats[r][c].state == Seat::PURCHASED) purchases++;
+
+    int maxPeople = reservations + purchases;
+    if (maxPeople == 0) return;
+
+    std::uniform_int_distribution<int> dist(1, maxPeople);
+    int peopleCount = dist(rng);
+
+    std::vector<Seat*> candidates;
+    for (int r = 0; r < ROWS; r++)
+        for (int c = 0; c < COLS; c++)
+            if (seats[r][c].state == Seat::RESERVED || seats[r][c].state == Seat::PURCHASED)
+                candidates.push_back(&seats[r][c]);
+
+    std::shuffle(candidates.begin(), candidates.end(), rng);
+    people.clear();
+    for (int i = 0; i < peopleCount && i < candidates.size(); i++) {
+        Person p;
+        p.x = door.x; p.y = door.y;
+        p.targetSeat = candidates[i];
+        p.seated = false;
+        people.push_back(p);
+    }
+
+    door.open = true;
+    projectionEndTime = glfwGetTime() + PROJECTION_DURATION_SECONDS;
+}
+
+for (auto &p : people) {
+        if (!p.seated) {
+            // vertical movement first
+            if (fabs(p.y - p.targetSeat->y) > p.speed) {
+                p.y += (p.targetSeat->y > p.y ? p.speed : -p.speed);
+            } else if (fabs(p.x - p.targetSeat->x) > p.speed) {
+                p.x += (p.targetSeat->x > p.x ? p.speed : -p.speed);
+            } else {
+                p.seated = true;
+            }
+        } else if (glfwGetTime() >= projectionEndTime + PROJECTION_DURATION_SECONDS) {
+            // exiting logic (reverse path)
+            if (fabs(p.y - door.y) > p.speed) {
+                p.y += (door.y > p.y ? p.speed : -p.speed);
+            } else if (fabs(p.x - door.x) > p.speed) {
+                p.x += (door.x > p.x ? p.speed : -p.speed);
+            }
+        }
+    }
