@@ -132,6 +132,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="res\rect.frag" />
+    <None Include="res\rect.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\stb_image.h" />
@@ -140,6 +142,10 @@
   <ItemGroup>
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Util.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\cursor.png" />
+    <Image Include="res\cursorpress.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
