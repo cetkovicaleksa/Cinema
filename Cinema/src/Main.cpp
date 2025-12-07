@@ -1,5 +1,6 @@
 ﻿#include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <random>
 
 #include "Util.h"
 
@@ -34,6 +35,16 @@ struct Seat {
 
 Seat seats[ROWS][COLS];
 
+struct Door {
+    float x, y;    
+    float width, height;
+    bool open;
+    float currentWidth; 
+};
+
+Door door = { -.99f, .2f, 0.2f, 0.05f, false, 0.2f };
+float doorMaxWidth = 0.6f, doorSpeed = 0.01f;
+
 void initSeats() {
     float seatScale = 0.04f;
     float seatSize = seatScale * 2.0f;
@@ -67,6 +78,10 @@ void purchaseFirstNFreeSeats(int n) {
     }
 }
 
+void startProjection() {
+    projectionEndTime = glfwGetTime() + PROJECTION_DURATION_SECONDS;
+    door.open = true;
+}
 
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
     switch (button) {
@@ -108,7 +123,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         break;
     case GLFW_KEY_ENTER:
         if (action == GLFW_PRESS && projectionEndTime == -1) {
-            projectionEndTime = glfwGetTime() + PROJECTION_DURATION_SECONDS;
+            startProjection();
         }
         break;
     default:
@@ -123,7 +138,8 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 void formVAOs(
     float *verticesCanvas, size_t canvasSize, unsigned int &VAOcanvas,
     float* verticesOverlay, size_t overlaySize, unsigned int& VAOoverlay,
-    float* verticesSeat, size_t seatSize, unsigned int& VAOseat
+    float* verticesSeat, size_t seatSize, unsigned int& VAOseat,
+    float* verticesDoor, size_t doorSize, unsigned int& VAOdoor
 ) {
     // Canvas
     unsigned VBOcanvas;
@@ -160,6 +176,16 @@ void formVAOs(
     glBindBuffer(GL_ARRAY_BUFFER, VBOseat);
     glBufferData(GL_ARRAY_BUFFER, seatSize, verticesSeat, GL_STATIC_DRAW);
 
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    unsigned VBOdoor;
+    glGenVertexArrays(1, &VAOdoor);
+    glGenBuffers(1, &VBOdoor);
+
+    glBindVertexArray(VAOdoor);
+    glBindBuffer(GL_ARRAY_BUFFER, VBOdoor);
+    glBufferData(GL_ARRAY_BUFFER, doorSize, verticesDoor, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 }
@@ -245,16 +271,24 @@ int main()
         0.6f,  0.3f
     };
 
+    float verticesDoor[] = {
+        -0.5f,  0.5f,
+        -0.5f, -0.5f,
+         0.5f, -0.5f,
+         0.5f,  0.5f
+    };
+
     //endregion
 
     //region VAOs
     
-    unsigned VAOcanvas, VAOoverlay, VAOseat;
+    unsigned VAOcanvas, VAOoverlay, VAOseat, VAOdoor;
 
     formVAOs(
         verticesCanvas, sizeof(verticesCanvas), VAOcanvas,
         verticesOverlay, sizeof(verticesOverlay), VAOoverlay,
-        verticesSeat, sizeof(verticesSeat), VAOseat
+        verticesSeat, sizeof(verticesSeat), VAOseat,
+        verticesDoor, sizeof(verticesDoor), VAOdoor
     );
 
     //endregion
@@ -321,6 +355,27 @@ int main()
             }
         }
 
+        // door opening/closing logic
+        if (door.open && door.currentWidth < doorMaxWidth) {
+            door.currentWidth += doorSpeed;
+            if (door.currentWidth > doorMaxWidth) door.currentWidth = doorMaxWidth;
+        }
+        if (!door.open && door.currentWidth > door.width) {
+            door.currentWidth -= doorSpeed;
+            if (door.currentWidth < door.width) door.currentWidth = door.width;
+        }
+
+        // draw door
+        glUseProgram(rectShader);
+        glUniform4f(glGetUniformLocation(rectShader, "uColor"), 0.5f, 0.25f, 0.0f, 1.0f); // brown
+        glUniform2f(glGetUniformLocation(rectShader, "uScale"), (door.currentWidth / doorMaxWidth) * .05f, .15f);
+        glUniform2f(glGetUniformLocation(rectShader, "uOffset"), door.x, door.y);
+
+        glBindVertexArray(VAOdoor);
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+
+
         // draw overlay
         if (!isProjecting) {
             glUseProgram(rectShader);
@@ -339,6 +394,7 @@ int main()
 
         if (isProjecting && glfwGetTime() >= projectionEndTime || projectionEndTime != -1 && (glfwGetTime() - projectionEndTime) > PROJECTION_DURATION_SECONDS) {
             projectionEndTime = -1;
+            door.open = false; /* wait for people to go out */
             initSeats();
         }
     }
