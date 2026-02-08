@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="Cinema3D.vcxproj" Id="075757c0-34f2-49a2-99cf-b3f50c6f3856" />
+</Solution>
